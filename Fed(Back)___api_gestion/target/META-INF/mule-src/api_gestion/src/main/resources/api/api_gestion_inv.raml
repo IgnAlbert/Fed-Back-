@@ -1,0 +1,42 @@
+#%RAML 1.0
+title: API gestion
+version: v1
+baseUri: localhost:8081
+protocols:
+  - HTTP
+
+mediaType:
+  - application/json
+
+types:
+  pedidos:
+    type: object
+    properties:
+      fecha_pedido: string
+      fecha_envio: string
+      cliente: string
+      pedido: string
+     
+/reponer:
+  get:
+    description: Obtiene 
+    responses:
+      200:
+        body:
+          application/json:
+            type: pedidos
+      400:
+        body:
+          text/plain:
+            type: string
+            example: "Bad Request"
+      404:
+        body:
+          text/plain:
+            type: string
+            example: "Not Found"
+      500:
+        body:
+          text/plain:
+            type: string
+            example: "Internal Server Error"

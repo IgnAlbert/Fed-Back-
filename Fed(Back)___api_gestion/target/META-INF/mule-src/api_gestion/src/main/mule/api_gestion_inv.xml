@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="api_gestion_inv-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="api_gestion_inv-config" api="api_gestion_inv.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_AWS" doc:name="Database Config" doc:id="c6cf5a09-6167-4f8c-a278-e3d7e5b1800b" >
+		<db:my-sql-connection port="3306" user="admin" host="database-restaurantes.ch579xhd5zy3.us-east-1.rds.amazonaws.com" password="Hambrientos5!" database="restaurante"/>
+	</db:config>
+	<db:config name="Database_Local" doc:name="Database Config" doc:id="dce35ebd-7b41-4f2d-b0ce-ba5054cc17cd" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="demo" database="restaurante" />
+	</db:config>
+	<http:request-config name="HTTP_POST_Provedor" doc:name="HTTP Request configuration" doc:id="3fb39281-59c4-42ed-8397-8b5186ad28bc">
+		<http:request-connection host="#[vars.url]" protocol="HTTPS"/>
+	</http:request-config>
+	<flow name="api_gestion_inv-main">
+        <http:listener config-ref="api_gestion_inv-httpListenerConfig" path="/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="api_gestion_inv-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="api_gestion_inv-console">
+        <http:listener config-ref="api_gestion_inv-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="api_gestion_inv-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\reponer:api_gestion_inv-config">
+        <flow-ref doc:name="Flow Reference" doc:id="e58b0681-f56a-4fc2-9da4-b25a0bb70615" name="api_gestion_invSub_Flow"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"Bad Request"]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<sub-flow name="api_gestion_invSub_Flow" doc:id="7aaee98e-775f-4dd9-886d-bde498b61387" >
+		<db:select doc:id="a9e511e8-f756-49a0-8fd7-8862a398bd5a" config-ref="Database_AWS" doc:name="Select alimentos consumidos">
+			<db:sql><![CDATA[select nombre, stock, stock_maximo, proveedor from ingredientes where stock < stock_maximo]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="b9d944a2-13fb-4bfa-97e5-a79f41bf1a69">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	nombre: payload01.nombre,
+	stock: payload01.stock default 0,
+	stock_maximo: payload01.stock_maximo default 0,
+	proveedor: payload01.proveedor default ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="El rincón del hambriento" doc:name="Restaurante" doc:id="bbdc38b5-c747-4210-baf3-458b745f2b48" variableName="nombre" />
+		<set-variable value="#[now()]" doc:name="Fecha" doc:id="38baa784-7c48-4510-9be3-f27f9066cae4" variableName="fecha" />
+		<set-variable doc:name="Fecha Envío" doc:id="35214459-61af-4784-bf59-004904539555" variableName="fecha_env" value="Fechas de envío: "/>
+		<set-variable value="Pedido total: " doc:name="Pedido Total" doc:id="4c4ac145-1c08-4eca-94b0-d7f9e12acbce" variableName="pedido_total" />
+		<set-variable doc:name="Proveedores" doc:id="aa0b5a49-ef0f-48d9-98f5-1d71ce569a2e" variableName="prov" value="proveedores :"/>
+		<foreach doc:name="For Each" doc:id="c6aacdf7-4944-4f83-92ea-b0d755c185ec" collection="#[payload.proveedor]">
+			<set-variable value='#[vars.prov ++ ", " ++ payload]' doc:name="Proveedores" doc:id="0a66f71a-44ec-4927-94f9-73b46424e4fb" variableName="prov" />
+		</foreach>
+		<foreach doc:name="For Each" doc:id="607ac2c8-4030-4b75-b345-690db192dfd4" collection="#[payload]">
+			<set-variable value="#[payload.nombre]" doc:name="Alimento" doc:id="a11a303d-cf4a-48b8-bd4d-eb565322b761" variableName="alimento" />
+			<set-variable value="#[payload.stock_maximo - payload.stock]" doc:name="Cantidad" doc:id="8e6eb083-54be-4f97-8ab6-376717d8b21c" variableName="cantidad" />
+			<set-variable value='#[vars.pedido_total ++ vars.alimento ++ "(" ++ vars.cantidad as String ++ ")" ++ ", "]' doc:name="Pedido Total" doc:id="42a73d19-a9ba-47ff-abe7-84b507a65791" variableName="pedido_total" />
+			<db:select doc:id="330cdce5-b5bb-4a52-ba54-c54055dfecdc" config-ref="Database_AWS" doc:name="Select Proveedor">
+				<db:sql><![CDATA[select url from proveedores where proveedor=:prov]]></db:sql>
+				<db:input-parameters><![CDATA[#[{'prov': payload.proveedor}]]]></db:input-parameters>
+			</db:select>
+			<set-variable doc:name="Url" doc:id="53ad325a-3c57-405b-8294-8a1be9c507bc" variableName="url" value='#[payload.url joinBy ""]'/>
+			<ee:transform doc:name="Transform Message" doc:id="6322e50d-bd9c-4190-8540-3e0003e4aaa4" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+{
+	"cliente":vars.nombre,
+	"pedido":vars.alimento ++ "(" ++ vars.cantidad as String ++ ")",
+	"fecha_solicitud":vars.fecha
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<http:request method="POST" doc:name="Request POST a proveedor" doc:id="bf5da939-ce8e-42bf-8fca-198c5b5f5604" config-ref="HTTP_POST_Provedor" path="/pedido">
+			</http:request>
+			<ee:transform doc:name="Asegurar Payload" doc:id="eb7e4a0d-8c92-4498-8807-e99c4ba4b1c5">
+			<ee:message>
+				<ee:set-payload><![CDATA[output application/java
+---
+{
+	fecha_pedido: payload.fecha_pedido,
+	fecha_envio: payload.fecha_envio,
+	cliente: payload.cliente,
+	pedido: payload.pedido
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<set-variable value="#[vars.fecha_env ++ payload.fecha_envio]" doc:name="Fecha Envío" doc:id="4e54aa65-aa0f-4dd3-82bf-5614767262a6" variableName="fecha_env" />
+		</foreach>
+		<set-payload value="#[output application/java&#10;---&#10;{&#10;	fecha_pedido: vars.fecha,&#10;	fecha_envio: vars.fecha_env,&#10;	cliente: vars.nombre,&#10;	pedido: vars.pedido_total&#10;}]" doc:name="Set Payload" doc:id="2bd98870-8b3a-44af-bfcf-18378d84722b" />
+	</sub-flow>
+	<flow name="Obtener_alimentos_automatizado_cada_dos_semanas" doc:id="d5929858-b049-487d-8a55-419e9241f5b6" >
+		<scheduler doc:name="Temporizador" doc:id="334077ae-5dc3-424d-a7b8-a1e3771d21ad" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="14" timeUnit="DAYS" />
+			</scheduling-strategy>
+		</scheduler>
+		<flow-ref doc:name="Flow Reference" doc:id="ab2e3b9e-705a-4d46-896c-16040aa95c92" name="api_gestion_invSub_Flow"/>
+	</flow>
+</mule>

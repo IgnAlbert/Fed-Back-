@@ -1,0 +1,24 @@
+%dw 2.0
+
+type auto_7aaee98e_775f_4dd9_886d_bde498b61387_Output_Payload = Array<{|  nombre: java_lang_Object | Null,   stock: java_lang_Object_4 | Number,   stock_maximo: java_lang_Object_7 | Number,   proveedor: java_lang_Object_10 | String|}>
+type java_lang_Object_4 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object_7 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object_10 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+
