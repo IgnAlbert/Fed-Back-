@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="api_cocina-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="api_cocina-config" api="api_cocina.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="15d33ce7-bcc6-4bee-b1ad-cebbac8b50f3" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="demo" database="restaurante" />
+	</db:config>
+	<db:config name="Database_AWS" doc:name="Database Config" doc:id="aadab383-4b75-4dd3-80ed-607b97fd92bf" >
+		<db:my-sql-connection host="database-restaurantes.ch579xhd5zy3.us-east-1.rds.amazonaws.com" port="3306" user="admin" password="Hambrientos5!" database="restaurante" />
+	</db:config>
+	<flow name="api_cocina-main">
+        <http:listener config-ref="api_cocina-httpListenerConfig" path="/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="api_cocina-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="api_cocina-console">
+        <http:listener config-ref="api_cocina-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="api_cocina-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\stock:application\json:api_cocina-config">
+		<db:select doc:name="Select" doc:id="ccbd28cc-b13a-4990-8cc2-e56331a069bf" config-ref="Database_AWS">
+			<db:sql ><![CDATA[select * from pedido where mesa=:mesa and hora=:hora]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'mesa': payload.mesa,'hora': payload.hora}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="046ffde0-565b-4c93-967f-10adb0ba7bb9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	mesa: payload01.mesa,
+	hora: payload01.hora as String,
+	plato: payload01.plato,
+	cantidad: payload01.cantidad default 0
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="4351c20f-25c4-4716-9d95-3552c21b23c2" collection="#[payload]">
+			<set-variable value="#[payload.plato]" doc:name="plato" doc:id="f7e14494-16f8-49e0-9def-a9947b1e4654" variableName="plato" />
+			<set-variable value="#[output application/java&#10;---&#10;{&#10;	cantidad: payload.cantidad&#10;}]" doc:name="cantidad" doc:id="a123add1-6c92-41cd-818e-ff9746011400" variableName="cantidad" />
+			<db:select doc:id="b0431bd3-cb47-44fd-aabd-9f249165e750" config-ref="Database_AWS" doc:name="Select">
+				<db:sql><![CDATA[SELECT ingredientes, cantidad FROM recetas WHERE plato=:plato;]]></db:sql>
+				<db:input-parameters><![CDATA[#[{'plato':vars.plato}]]]></db:input-parameters>
+			</db:select>
+			<ee:transform doc:name="Transform Message" doc:id="0f2d763d-b3df-4447-a635-de7ff6de4384">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+
+  payload map ((payload01, indexOfPayload01) -> {
+	ingredientes: payload01.ingredientes,
+	cantidadX: (payload01.cantidad default 0) * vars.cantidad.cantidad
+	})
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<foreach doc:name="For Each" doc:id="02be36c2-63be-44ed-9b8e-de0ad29b7e5e" collection="#[payload]">
+				<db:update doc:id="1f3ae754-bb92-4d5e-b9f8-562ddab16a4e" config-ref="Database_AWS" doc:name="Update">
+					<db:sql><![CDATA[UPDATE ingredientes SET stock=stock -:cantidad WHERE nombre= :ingrediente]]></db:sql>
+					<db:input-parameters><![CDATA[#[{'cantidad': payload.cantidadX, 'ingrediente': payload.ingredientes}]]]></db:input-parameters>
+				</db:update>
+			</foreach>
+		</foreach>
+    </flow>
+</mule>

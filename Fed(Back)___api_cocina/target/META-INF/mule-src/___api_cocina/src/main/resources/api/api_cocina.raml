@@ -1,0 +1,45 @@
+#%RAML 1.0
+title: API cocina
+version: v1
+baseUri: localhost:8081
+protocols:
+  - HTTP
+
+mediaType:
+  - application/json
+
+types:
+  recibido:
+    type: object
+    properties:
+      mesa: integer
+      hora: string
+
+     
+/stock:
+  post:
+    description: Obtiene mesa y hora a calcular
+    body:
+        application/json:
+          type: recibido
+    responses:
+      200:
+        body:
+          text/plain:
+            type: string
+            example: "OK"
+      400:
+        body:
+          text/plain:
+            type: string
+            example: "Bad Request"
+      404:
+        body:
+          text/plain:
+            type: string
+            example: "Not Found"
+      500:
+        body:
+          text/plain:
+            type: string
+            example: "Internal Server Error"

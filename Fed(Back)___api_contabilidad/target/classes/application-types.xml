@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="SQLtoNumber" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: object
+properties:
+    t_ticket:
+        type: number]]></types:shape>
+    </types:type>
+    <types:type name="SQLtoTicket" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: object
+properties:
+    id:
+        type: number
+    mesa:
+        type: number
+    hora:
+        type: string
+    pedido:
+        type: string
+    total:
+        type: number
+    descuento:
+        type: boolean]]></types:shape>
+    </types:type>
+    <types:type name="number" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: number]]></types:shape>
+    </types:type>
+    <types:type name="JSON_envio" format="json">
+      <types:shape format="weave" example="examples/JSONenvio-1.json"><![CDATA[%dw 2.0
+
+type JSON_envio = {|
+  mesa: Number {"typeId": "int"}, 
+  hora: String
+|} {"example": "{\\\"mesa\\\":2,\\\"hora\\\":\\\"2023-12-05 18:00:00\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#5b46fe78-e87f-4400-8d40-241ea45389fd">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="SQLtoNumber"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#6f6220b1-771b-44c2-bb7b-6ee29a0bab88">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="JSON_envio"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

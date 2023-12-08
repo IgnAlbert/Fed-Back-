@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:amazon-lambda="http://www.mulesoft.org/schema/mule/amazon-lambda" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/amazon-lambda http://www.mulesoft.org/schema/mule/amazon-lambda/current/mule-amazon-lambda.xsd">
+    <http:listener-config name="api_servicio_review-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="api_servicio_review-config" api="api_servicio_review.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <amazon-lambda:config name="Amazon_Lambda_Connector_Config" doc:name="Amazon Lambda Connector Config" doc:id="01921566-148e-4aa5-8009-dd17fb754d0a" >
+		<amazon-lambda:connection accessKey="ASIAQGC4FELZGMSA2S6Q" secretKey="73knKTdR6N6kVe0Z3kdDEpzTN21n5vcEelk4cIJe" />
+	</amazon-lambda:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="b2dbfc4f-910a-4ee8-8ae8-81c048ec8bc9">
+		<http:request-connection protocol="HTTPS" host="wadggb4yjys5caz2swsatmgmgu0wmmca.lambda-url.us-east-1.on.aws"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="e585238f-14e6-45fd-b09a-be78a83383ce" >
+		<http:request-connection host="api-contabilidad-4hvmn3.5sc6y6-1.usa-e2.cloudhub.io" protocol="HTTPS"/>
+	</http:request-config>
+	<flow name="api_servicio_review-main">
+        <http:listener config-ref="api_servicio_review-httpListenerConfig" path="/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="api_servicio_review-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="api_servicio_review-console">
+        <http:listener config-ref="api_servicio_review-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="api_servicio_review-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\comrpobar:application\json:api_servicio_review-config">
+		<set-variable value="#[payload.id]" doc:name="Id ticket" doc:id="ca8de92e-de74-44ad-907c-74afca7a5d32" variableName="id"/>
+		<set-variable value="#[payload.review]" doc:name="review" doc:id="e68b2a59-3312-400d-a8a4-0785fdac5147" variableName="review"/>
+		<ee:transform doc:name="Transform Message" doc:id="b9ddca92-7f8a-45e8-a8ff-5bf31a6fbce1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	texto: payload.review ++ " "
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Lambda AWS" doc:id="79691c88-d337-4040-afea-fcc2b3ad5c88" config-ref="HTTP_Request_configuration" path="/">
+		</http:request>
+		<choice doc:name="Choice" doc:id="9dfd563f-978b-4cc2-a80f-36ccc7c3d649" >
+			<when expression="#[payload.resultado as Boolean == true]">
+				<set-variable value="#[output application/json&#10;---&#10;{&#10;	id: vars.id,&#10;	review: vars.review&#10;}]" doc:name="Json" doc:id="402ef14c-eb6a-444a-a6c3-c4fa1fbdb668" variableName="json"/>
+				<http:request method="POST" doc:name="Request" doc:id="fa90c18e-1b0c-4275-b963-234cf0b49e23" config-ref="HTTP_Request_configuration1" path="/ticket/opinion">
+					<http:body ><![CDATA[#[vars.json]]]></http:body>
+				</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="e11003a1-9501-41c2-9626-e503e9b81c28" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	texto: "La reseña cumple con las condiciones, se aplicará el descuento "
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="d947039e-43b4-452f-8b47-42acbe454aa0" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	texto: "La reseña NO cumple con las condiciones"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+</mule>

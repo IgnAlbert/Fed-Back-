@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="JSON" format="json">
+      <types:shape format="weave" example="examples/JSONLambda.json"><![CDATA[%dw 2.0
+
+type JSON = {| texto: String |} {"example": "{\\\"texto\\\":\\\"HOLA\\\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="boolean" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: boolean]]></types:shape>
+    </types:type>
+    <types:type name="JSONResponse" format="json">
+      <types:shape format="weave" example="examples/JSONResponse.json"><![CDATA[%dw 2.0
+
+type JSONResponse = {| condicion: Boolean |} {"example": "{\\\"condicion\\\":true}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="JSONContabilidad" format="json">
+      <types:shape format="weave" example="examples/JSONContabilidad.json"><![CDATA[%dw 2.0
+
+type JSONContabilidad = {|
+  id: Number {"typeId": "int"}, 
+  review: String
+|} {"example": "{\\\"id\\\":1,\\\"review\\\":\\\"texto\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#b9ddca92-7f8a-45e8-a8ff-5bf31a6fbce1">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="JSON"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e11003a1-9501-41c2-9626-e503e9b81c28">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="JSON"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#d947039e-43b4-452f-8b47-42acbe454aa0">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="JSON"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#402ef14c-eb6a-444a-a6c3-c4fa1fbdb668">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="JSONContabilidad"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+</types:mule>

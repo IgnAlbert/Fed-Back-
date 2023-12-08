@@ -1,0 +1,68 @@
+#%RAML 1.0
+title: API contabilidad
+version: v1
+baseUri: localhost:8081
+protocols:
+  - HTTP
+
+mediaType:
+  - application/json
+
+types:
+  ticket:
+    type: object
+    properties:
+      id: integer
+      mesa: integer
+      platos: string
+      hora: string
+      precio: number
+  opinion:
+    type: object
+    properties:
+      id: integer
+      review: string
+  peticion:
+    type: object
+    properties:
+      mesa: integer
+      hora: string
+     
+/ticket:
+  post:
+    description: Obtiene ticket
+    body:
+        application/json:
+          type: peticion
+    responses:
+      200:
+        body:
+          application/json:
+            type: ticket
+      400:
+        body:
+          text/plain:
+            type: string
+            example: "Bad Request"
+      404:
+        body:
+          text/plain:
+            type: string
+            example: "Not Found"
+      500:
+        body:
+          text/plain:
+            type: string
+            example: "Internal Server Error"
+  /opinion:
+    post:
+      description: Avisa para aplicar el descuento
+      body:
+        application/json:
+          type: opinion
+      responses:
+        200:
+          body:
+            text/plain:
+              type: string
+              example: "OK" 
