@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+    <http:listener-config name="Pedido-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="Pedido-config" api="Pedido.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="c877e427-aeba-4f98-a32c-62281d64ebac" >
+		<db:my-sql-connection host="localhost" port="3306" database="restaurante" user="root" password="demo"/>
+	</db:config>
+	<db:config name="Database_AWS" doc:name="Database Config" doc:id="00c16531-94ab-45f9-b506-4ba4a64cad4f" >
+		<db:my-sql-connection host="database-restaurantes.ch579xhd5zy3.us-east-1.rds.amazonaws.com" port="3306" user="admin" password="Hambrientos5!" database="restaurante" />
+	</db:config>
+	<flow name="Pedido-main">
+        <http:listener config-ref="Pedido-httpListenerConfig" path="/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="Pedido-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="Pedido-console">
+        <http:listener config-ref="Pedido-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="Pedido-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\pedido:application\json:Pedido-config">
+		<ee:transform doc:name="Transform Message" doc:id="86edc0fe-ee2f-41a0-b735-fb203f75a7d3">
+			<ee:message>
+				<ee:set-payload><![CDATA[output application/json
+---
+{
+	mesa: payload.mesa,
+	hora: payload.hora,
+	plato: payload.plato,
+	cantidad: payload.cantidad
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload.mesa]" doc:name="mesa" doc:id="ae7502ca-8404-4bc6-89d1-02711be38496" variableName="mesa"/>
+		<set-variable value="#[payload.hora]" doc:name="hora" doc:id="9a25b296-fc6e-4acd-b73d-31410bd7cac0" variableName="hora"/>
+		<set-variable value="#[payload.plato]" doc:name="plato" doc:id="7d3c76dc-bd03-41a6-ac9d-3c2428b43097" variableName="plato" />
+		<set-variable value="#[output application/java&#10;---&#10;{&#10;	cantidad: payload.cantidad&#10;}]" doc:name="cantidad" doc:id="83dc0848-42fb-4bf6-9fe9-eeeaffc7ee52" variableName="cantidad" />
+		<db:select doc:name="Select" doc:id="5c2a05a2-86b5-4867-a4de-6380263060bc" config-ref="Database_AWS">
+				<db:sql><![CDATA[SELECT ingredientes, cantidad FROM recetas WHERE plato=:plato;]]></db:sql>
+				<db:input-parameters><![CDATA[#[{'plato':vars.plato}]]]></db:input-parameters>
+			</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="2b55f9f4-ce6c-43aa-97e6-099f67c0d0e8">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+
+  payload map ((payload01, indexOfPayload01) -> {
+	ingredientes: payload01.ingredientes,
+	cantidad: (payload01.cantidad default 0) * vars.cantidad.cantidad
+	})
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		<set-variable value="#[true]" doc:name="BooleanInsert" doc:id="e04245fa-412b-4b27-a3b1-5af3751ffd6b" variableName="comprobar" />
+		<foreach doc:name="For Each" doc:id="d9b615ef-41d6-49f0-b2ad-b85a682f7a60" collection="#[payload]">
+			<set-variable value="#[payload.cantidad]" doc:name="Cantidad Alimentos" doc:id="1c63e591-3b06-4ff7-b923-aaab1b3e644e" variableName="cant_alim"/>
+			<db:select doc:name="Select" doc:id="170c4910-4a33-4300-8cf3-baddc07881ee" config-ref="Database_AWS">
+					<db:sql><![CDATA[SELECT stock FROM ingredientes WHERE nombre=:alimento]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+'alimento':payload.ingredientes
+}]]]></db:input-parameters>
+				</db:select>
+			<set-variable value="#[payload[0].stock default 0]" doc:name="stock" doc:id="b2a0dffa-86d1-4226-9f60-7aaf3de87b48" variableName="stock" />
+			<choice doc:name="Choice" doc:id="c9a811c0-6794-476f-854c-7a38fb6b9885">
+					<when expression="#[(vars.stock - vars.cant_alim)&lt; 0]">
+						<set-variable value="#[false]" doc:name="BooleanInsert" doc:id="e09b35ec-f2bc-4a28-9e54-112570601d60" variableName="comprobar" />
+					</when>
+				<otherwise>
+					<set-variable value="#[true]" doc:name="BooleanInsert" doc:id="6e37071a-e038-4ea2-a5fc-0f6de95a2a74" variableName="comprobar" />
+				</otherwise>
+				</choice>
+			</foreach>
+		<choice doc:name="Choice" doc:id="d06a017f-e5c9-4df2-9d11-fcc3fb009fb0">
+				<when expression="#[vars.comprobar == true]">
+					<db:insert doc:name="Insert" doc:id="d390c747-97a5-49dc-b487-d7013081ec49" config-ref="Database_AWS">
+						<db:sql><![CDATA[INSERT INTO pedido (mesa, hora, plato, cantidad) VALUES (:mesa, :hora, :plato, :cantidad)]]></db:sql>
+						<db:input-parameters><![CDATA[#[output application/java
+---
+{
+	'mesa': vars.mesa,
+	'hora': vars.hora,
+	'plato': vars.plato,
+	'cantidad': vars.cantidad.cantidad
+}]]]></db:input-parameters>
+					</db:insert>
+				<set-payload doc:name="Set Payload" doc:id="b66d6a4f-1661-47c1-bba4-36bc8cb465b7" value='#[{&#10;	message: "OK",&#10;	codigo: 1&#10;}]'/>
+				</when>
+			<otherwise >
+				<set-payload value='#[{&#10;	message: "No hay suficiente stock para " ++ vars.cantidad.cantidad as String,&#10;	codigo: 0&#10;}]' doc:name="Set Payload" doc:id="69879205-3ccf-4319-8c5e-0c089711486f" />
+			</otherwise>
+				
+			</choice>
+		<ee:transform doc:name="Transform Message" doc:id="9241fd21-468b-4612-aa89-e9c957345cf7">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: payload.message,
+	codigo: payload.codigo
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+    </flow>
+</mule>

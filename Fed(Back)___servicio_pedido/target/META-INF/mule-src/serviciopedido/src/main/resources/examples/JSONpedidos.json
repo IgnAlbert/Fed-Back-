@@ -1,0 +1,13 @@
+[
+  {"mesa": 1, "hora": "2023-12-03 18:30:00", "plato": "Arroz a la Cubana", "cantidad": 2},
+  {"mesa": 1, "hora": "2023-12-03 18:30:00", "plato": "Ensalada de Pollo", "cantidad": 2},
+  {"mesa": 1, "hora": "2023-12-03 18:30:00", "plato": "Pasta Bolognesa", "cantidad": 1},
+  {"mesa": 1, "hora": "2023-12-03 18:30:00", "plato": "Sándwich de Pollo", "cantidad": 1},
+  {"mesa": 2, "hora": "2023-12-03 19:15:00", "plato": "Arroz a la Cubana", "cantidad": 3},
+  {"mesa": 2, "hora": "2023-12-03 19:15:00", "plato": "Papas con Queso", "cantidad": 3},
+  {"mesa": 3, "hora": "2023-12-03 20:00:00", "plato": "Pasta Bolognesa", "cantidad": 2},
+  {"mesa": 3, "hora": "2023-12-03 20:00:00", "plato": "Pizza Margarita", "cantidad": 2},
+  {"mesa": 4, "hora": "2023-12-03 20:30:00", "plato": "Arroz a la Cubana", "cantidad": 1},
+  {"mesa": 4, "hora": "2023-12-03 20:30:00", "plato": "Ensalada de Pollo", "cantidad": 1},
+  {"mesa": 5, "hora": "2023-12-03 21:00:00", "plato": "Sándwich de Pollo", "cantidad": 2}
+]

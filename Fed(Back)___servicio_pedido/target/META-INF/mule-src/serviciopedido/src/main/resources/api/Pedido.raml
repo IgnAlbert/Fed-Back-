@@ -1,0 +1,49 @@
+#%RAML 1.0
+title: APIpedido
+
+
+baseUri: localhost:8081
+protocols:
+  - HTTPS
+
+mediaType:
+  - application/json 
+  
+types:
+  pedido:
+    type: object
+    properties:
+      mesa: integer
+      hora: string
+      plato: string
+      cantidad: integer
+  respuesta:
+    type: object
+    properties:
+      message: string
+      cantidad: integer
+   
+/pedido:
+  post:
+    body:
+        type: pedido
+    responses:
+      200:
+        body:
+          application/json:
+            type: respuesta
+      400:
+        body:
+          text/plain:
+            type: string
+            example: "Bad Request"
+      404:
+        body:
+          text/plain:
+            type: string
+            example: "Not Found"
+      500:
+        body:
+          text/plain:
+            type: string
+            example: "Internal Server Error"

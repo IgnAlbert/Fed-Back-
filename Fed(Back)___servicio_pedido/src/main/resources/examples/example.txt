@@ -1,0 +1,6 @@
+{
+	"mesa":6, 
+    "hora":"2023-12-03 18:30:00", 
+    "plato" : "Ensalada", 
+    "cantidad": 2
+}

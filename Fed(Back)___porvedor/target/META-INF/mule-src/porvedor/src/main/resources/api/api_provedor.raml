@@ -1,0 +1,38 @@
+#%RAML 1.0
+
+title: Sample API
+baseUri: localhost:8081
+protocols:
+  - HTTP
+
+mediaType:
+  - application/json
+
+types:
+  pedidos:
+    type: object
+    properties:
+      id: string
+      fecha_pedido: string
+      fecha_envio: string
+      cliente: string
+      pedido: string
+      
+  solicitud:
+    type: object
+    properties:
+      cliente: string
+      pedido: string
+      fecha_solicitud: string
+     
+/pedido:
+  post:
+    body:
+        type: solicitud
+    responses:
+      200:
+        body:
+          type: pedidos
+      404:
+        body:
+          type: string

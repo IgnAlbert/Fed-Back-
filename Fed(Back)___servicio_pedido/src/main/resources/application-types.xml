@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="pedido" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="sqltomap" format="json">
+      <types:shape format="weave" example="examples/JSONpedidos.json"><![CDATA[%dw 2.0
+
+type sqltomap = Array<{|  mesa: Number {"typeId": "int"},   hora: String,   plato: String,   cantidad: Number {"typeId": "int"}|}> {"example": "[{\\\"mesa\\\":1,\\\"hora\\\":\\\"2023-12-03 18:30:00\\\",\\\"plato\\\":\\\"Arroz a la Cubana\\\",\\\"cantidad\\\":2},{\\\"mesa\\\":1,\\\"hora\\\":\\\"2023-12-03 18:30:00\\\",\\\"plato\\\":\\\"Ensalada de Pollo\\\",\\\"cantidad\\\":2},{\\\"mesa\\\":1,\\\"hora\\\":\\\"2023-12-03 18:30:00\\\",\\\"plato\\\":\\\"Pasta Bolognesa\\\",\\\"cantidad\\\":1},{\\\"mesa\\\":1,\\\"hora\\\":\\\"2023-12-03 18:30:00\\\",\\\"plato\\\":\\\"S\u00E1ndwich de Pollo\\\",\\\"cantidad\\\":1},{\\\"mesa\\\":2,\\\"hora\\\":\\\"2023-12-03 19:15:00\\\",\\\"plato\\\":\\\"Arroz a la Cubana\\\",\\\"cantidad\\\":3},{\\\"mesa\\\":2,\\\"hora\\\":\\\"2023-12-03 19:15:00\\\",\\\"plato\\\":\\\"Papas con Queso\\\",\\\"cantidad\\\":3},{\\\"mesa\\\":3,\\\"hora\\\":\\\"2023-12-03 20:00:00\\\",\\\"plato\\\":\\\"Pasta Bolognesa\\\",\\\"cantidad\\\":2},{\\\"mesa\\\":3,\\\"hora\\\":\\\"2023-12-03 20:00:00\\\",\\\"plato\\\":\\\"Pizza Margarita\\\",\\\"cantidad\\\":2},{\\\"mesa\\\":4,\\\"hora\\\":\\\"2023-12-03 20:30:00\\\",\\\"plato\\\":\\\"Arroz a la Cubana\\\",\\\"cantidad\\\":1},{\\\"mesa\\\":4,\\\"hora\\\":\\\"2023-12-03 20:30:00\\\",\\\"plato\\\":\\\"Ensalada de Pollo\\\",\\\"cantidad\\\":1},{\\\"mesa\\\":5,\\\"hora\\\":\\\"2023-12-03 21:00:00\\\",\\\"plato\\\":\\\"S\u00E1ndwich de Pollo\\\",\\\"cantidad\\\":2}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="cantidad" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: object
+properties:
+    cantidad:
+        type: number
+    ]]></types:shape>
+    </types:type>
+    <types:type name="sqlingredientes" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: array
+items: 
+  properties:
+    ingredientes:
+        type: string
+    cantidad:
+        type: number
+        ]]></types:shape>
+    </types:type>
+    <types:type name="Boolean" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: boolean]]></types:shape>
+    </types:type>
+    <types:type name="error" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="postpedido" format="json">
+      <types:shape format="weave" example="examples/example.txt"><![CDATA[%dw 2.0
+
+type postpedido = {|
+  mesa: Number {"typeId": "int"}, 
+  hora: String, 
+  plato: String, 
+  cantidad: Number {"typeId": "int"}
+|} {"example": "{\\\"mesa\\\":6,\\\"hora\\\":\\\"2023-12-03 18:30:00\\\",\\\"plato\\\":\\\"Ensalada\\\",\\\"cantidad\\\":2}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="respuesta" format="json">
+      <types:shape format="weave" example="examples/JSONrespuesta.json"><![CDATA[%dw 2.0
+
+type respuesta = {|
+  message: String, 
+  codigo: Number {"typeId": "int"}
+|} {"example": "{\\\"message\\\":\\\"ok\\\",\\\"codigo\\\":1}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="stock" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: object
+properties:
+    stock:
+        type: number
+]]></types:shape>
+    </types:type>
+    <types:type name="number" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: number]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#86edc0fe-ee2f-41a0-b735-fb203f75a7d3">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="postpedido"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="postpedido"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#83dc0848-42fb-4bf6-9fe9-eeeaffc7ee52">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="cantidad"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#2b55f9f4-ce6c-43aa-97e6-099f67c0d0e8">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="sqlingredientes"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e04245fa-412b-4b27-a3b1-5af3751ffd6b">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="Boolean"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#b66d6a4f-1661-47c1-bba4-36bc8cb465b7">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="respuesta"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#69879205-3ccf-4319-8c5e-0c089711486f">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="respuesta"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#b2a0dffa-86d1-4226-9f60-7aaf3de87b48">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="number"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#1c63e591-3b06-4ff7-b923-aaab1b3e644e">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="number"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#ae7502ca-8404-4bc6-89d1-02711be38496">
+    <types:operation-declaration>
+      <types:inputs>
+        <types:parameter name="value" type="number"/>
+      </types:inputs>
+    </types:operation-declaration>
+  </types:enrichment>
+  <types:enrichment select="#9241fd21-468b-4612-aa89-e9c957345cf7">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="respuesta"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

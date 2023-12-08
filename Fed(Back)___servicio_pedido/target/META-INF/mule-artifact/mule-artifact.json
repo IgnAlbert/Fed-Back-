@@ -1,0 +1,29 @@
+{
+  "configs": [
+    "Pedido.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "e59abd4d-0dc2-4639-9f32-21aa3f9fa542:serviciopedido:1.0.5",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "api/Pedido.raml",
+        "application-types.xml",
+        "examples/example.txt",
+        "examples/JSONpedidos.json",
+        "examples/JSONrespuesta.json",
+        "log4j2.xml",
+        "Pedido.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
